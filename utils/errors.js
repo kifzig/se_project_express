@@ -7,3 +7,13 @@ module.exports = {
   NOT_FOUND_ERROR,
   DEFAULT_ERROR,
 };
+
+// https://mongoosejs.com/docs/api/error.html
+
+// class ValidationError extends Error {
+//   constructor(message) {
+//     super(message);
+//     this.name = "ValidationError";
+//     this.statusCode = 400;
+//   }
+// }

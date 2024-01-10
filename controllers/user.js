@@ -24,11 +24,11 @@ const createUser = (req, res) => {
     .catch((err) => {
       console.error(err);
 
-      if (err.name === "InvalidDataError") {
+      if (err.name === Error.CastError) {
         return res
           .status(INVALID_DATA_ERROR)
           .json({ message: "Invalid data passed to database" });
-      } else if (err.name === "NotFoundError") {
+      } else if (err.name === Error.ValidationError) {
         return res
           .status(NOT_FOUND_ERROR)
           .json({ message: "Requested resource not found" });

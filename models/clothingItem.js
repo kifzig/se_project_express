@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+// const User = require("../models/user");
 
 const clothingItem = new mongoose.Schema({
   name: {
@@ -25,7 +26,8 @@ const clothingItem = new mongoose.Schema({
     default: Date.now,
   },
   owner: {
-    type: ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "user",
     required: true,
   },
   // owner - a link to the item author's model of the ObjectId type, a required field
