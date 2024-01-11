@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
-// const User = require("../models/user");
+const user = require("../models/user.js");
 
 const clothingItem = new mongoose.Schema({
   name: {
@@ -27,12 +27,15 @@ const clothingItem = new mongoose.Schema({
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
+    ref: user,
     required: true,
   },
-  // owner - a link to the item author's model of the ObjectId type, a required field
-
-  // likes - a list of users who liked the item, an ObjectId array with a reference to the user modal
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: user,
+    },
+  ],
 });
 
 module.exports = mongoose.model("clothingItems", clothingItem);
