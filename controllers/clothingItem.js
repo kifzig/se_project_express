@@ -24,13 +24,9 @@ const createItem = (req, res) => {
     })
     .catch((error) => {
       if (error.name === "ValidationError") {
-        res
-          .status(INVALID_DATA_ERROR)
-          .send({ message: "Data is invalid", error });
+        res.status(INVALID_DATA_ERROR).send({ message: "Data is invalid." });
       } else {
-        res
-          .status(DEFAULT_ERROR)
-          .send({ message: `Error from createItem`, error });
+        res.status(DEFAULT_ERROR).send({ message: "Error from createItem." });
       }
     });
 };
@@ -89,6 +85,10 @@ const likeItem = (req, res) =>
         res
           .status(NOT_FOUND_ERROR)
           .send({ message: "Document was not found, unable to add like." });
+      } else if (error.name === "CastError") {
+        res
+          .status(INVALID_DATA_ERROR)
+          .send({ message: "Invalid data, unable to add like." });
       } else {
         // Handle other errors
         res
@@ -115,7 +115,7 @@ const dislikeItem = (req, res) =>
       if (error.name === "DocumentNotFoundError") {
         // Handle null error
         res.status(NOT_FOUND_ERROR).send({ message: error.message });
-      } else if (err.name === "CastError") {
+      } else if (error.name === "CastError") {
         res
           .status(INVALID_DATA_ERROR)
           .send({ message: "Item not found for removing like from item." });
