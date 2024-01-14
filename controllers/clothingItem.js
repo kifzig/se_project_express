@@ -1,27 +1,37 @@
 const ClothingItem = require("../models/clothingItem");
 
+const {
+  INVALID_DATA_ERROR,
+  NOT_FOUND_ERROR,
+  DEFAULT_ERROR,
+} = require("../utils/errors");
+
 const createItem = (req, res) => {
   const owner = req.user._id;
-  console.log(owner);
 
-  module.exports.createClothingItem = (req, res) => {
-    console.log(req.user._id); // _id will become accessible
-  };
+  module.exports.createClothingItem = () => {};
 
-  const { name, weather, imageURL } = req.body;
+  const { name, weather, imageUrl } = req.body;
 
   ClothingItem.create({
-    name: name,
-    weather: weather,
-    imageURL: imageURL,
-    owner: owner,
+    name,
+    weather,
+    imageUrl,
+    owner,
   })
     .then((item) => {
-      console.log(item);
       res.send({ data: item });
     })
-    .catch((e) => {
-      res.status(500).send({ message: `Error from createItem`, e });
+    .catch((error) => {
+      if (error.name === "ValidationError") {
+        res
+          .status(INVALID_DATA_ERROR)
+          .send({ message: "Data is invalid", error });
+      } else {
+        res
+          .status(DEFAULT_ERROR)
+          .send({ message: `Error from createItem`, error });
+      }
     });
 };
 
@@ -29,40 +39,33 @@ const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.status(200).send(items))
     .catch((e) => {
-      res.status(500).send({ message: "Error from get items", e });
-    });
-};
-
-const updateItem = (req, res) => {
-  const { itemId } = req.params;
-  const { imageURL } = req.body;
-
-  ClothingItem.findByIdAndUpdate(itemId, { $set: { imageURL } })
-    .orFail(() => {
-      const error = new Error(`Clothing item with ID ${itemId} not found`);
-      error.statusCode = 404;
-      throw error;
-    })
-    .then((item) => res.status(200).send({ data: item }))
-    .catch((error) => {
-      if (error instanceof mongoose.Error.DocumentNotFoundError) {
-        // Handle null error
-        res.status(404).send({ message: error.message });
-      } else {
-        // Handle other errors
-        res.status(500).send({ message: "Error from updateItem", error });
-      }
+      res
+        .status(DEFAULT_ERROR)
+        .send({ message: "Error from getting all items." });
     });
 };
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
-  console.log(itemId);
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
-    .then((item) => res.status(204).send({}))
-    .catch((e) => {
-      res.status(500).send({ message: "Error from deleteItem", e });
+    .then(() =>
+      res.status(200).send({ message: "You successfully deleted an item." }),
+    )
+    .catch((error) => {
+      if (error.name === "DocumentNotFoundError") {
+        // Handle null error
+        res
+          .status(NOT_FOUND_ERROR)
+          .send({ message: "Item to be deleted does not exist." });
+      } else if (error.name === "CastError") {
+        res
+          .status(INVALID_DATA_ERROR)
+          .send({ message: "Item not found for deletion." });
+      } else {
+        // Handle other errors
+        res.status(DEFAULT_ERROR).send({ message: "Error deleting item." });
+      }
     });
 };
 
@@ -74,18 +77,23 @@ const likeItem = (req, res) =>
     { new: true },
   )
     .orFail(() => {
+      const { itemId } = req.params;
       const error = new Error(`Clothing item with ID ${itemId} not found`);
-      error.statusCode = 404;
+      error.statusCode = NOT_FOUND_ERROR;
       throw error;
     })
     .then((item) => res.status(200).send({ data: item }))
     .catch((error) => {
-      if (error instanceof mongoose.Error.DocumentNotFoundError) {
+      if (error.name === "DocumentNotFoundError") {
         // Handle null error
-        res.status(404).send({ message: error.message });
+        res
+          .status(NOT_FOUND_ERROR)
+          .send({ message: "Document was not found, unable to add like." });
       } else {
         // Handle other errors
-        res.status(500).send({ message: "Error from likeItem", error });
+        res
+          .status(DEFAULT_ERROR)
+          .send({ message: "Error adding like to item." });
       }
     });
 
@@ -97,25 +105,31 @@ const dislikeItem = (req, res) =>
     { new: true },
   )
     .orFail(() => {
+      const { itemId } = req.params;
       const error = new Error(`Clothing item with ID ${itemId} not found`);
-      error.statusCode = 404;
+      error.statusCode = NOT_FOUND_ERROR;
       throw error;
     })
     .then((item) => res.status(200).send({ data: item }))
     .catch((error) => {
-      if (error instanceof mongoose.Error.DocumentNotFoundError) {
+      if (error.name === "DocumentNotFoundError") {
         // Handle null error
-        res.status(404).send({ message: error.message });
+        res.status(NOT_FOUND_ERROR).send({ message: error.message });
+      } else if (err.name === "CastError") {
+        res
+          .status(INVALID_DATA_ERROR)
+          .send({ message: "Item not found for removing like from item." });
       } else {
         // Handle other errors
-        res.status(500).send({ message: "Error from dislikeItem", error });
+        res
+          .status(DEFAULT_ERROR)
+          .send({ message: "Error removing like from item." });
       }
     });
 
 module.exports = {
   createItem,
   getItems,
-  updateItem,
   deleteItem,
   likeItem,
   dislikeItem,

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
-const user = require("../models/user.js");
+const user = require("./user");
 
 const clothingItem = new mongoose.Schema({
   name: {
@@ -13,7 +13,7 @@ const clothingItem = new mongoose.Schema({
     enum: ["hot", "warm", "cold"],
     // "hot", "warm", and "cold" with the enum validator to implement the field
   },
-  imageURL: {
+  imageUrl: {
     type: String,
     required: true,
     validate: {
