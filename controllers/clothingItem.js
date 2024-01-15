@@ -34,7 +34,7 @@ const createItem = (req, res) => {
 const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.status(200).send(items))
-    .catch((e) => {
+    .catch(() => {
       res
         .status(DEFAULT_ERROR)
         .send({ message: "Error from getting all items." });
@@ -65,7 +65,6 @@ const deleteItem = (req, res) => {
     });
 };
 
-// router.put("/:itemId/likes", likeItem);
 const likeItem = (req, res) =>
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
@@ -80,7 +79,7 @@ const likeItem = (req, res) =>
     })
     .then((item) => res.status(200).send({ data: item }))
     .catch((error) => {
-      if (error.name === "DocumentNotFoundError") {
+      if (error.statusCode === NOT_FOUND_ERROR) {
         // Handle null error
         res
           .status(NOT_FOUND_ERROR)
@@ -112,7 +111,7 @@ const dislikeItem = (req, res) =>
     })
     .then((item) => res.status(200).send({ data: item }))
     .catch((error) => {
-      if (error.name === "DocumentNotFoundError") {
+      if (error.statusCode === NOT_FOUND_ERROR) {
         // Handle null error
         res.status(NOT_FOUND_ERROR).send({ message: error.message });
       } else if (error.name === "CastError") {

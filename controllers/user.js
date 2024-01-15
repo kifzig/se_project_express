@@ -32,7 +32,7 @@ const createUser = (req, res) => {
 const getUsers = (req, res) => {
   User.find({})
     .then((items) => res.status(200).send(items))
-    .catch((e) => {
+    .catch(() => {
       res
         .status(DEFAULT_ERROR)
         .send({ message: "Error retrieving a list of all users." });
@@ -45,7 +45,7 @@ const getUser = (req, res) => {
   User.findById(userId)
     .then((item) => res.status(200).send(item))
     .catch((error) => {
-      if (error.name === "DocumentNotFoundError") {
+      if (error.statusCode === NOT_FOUND_ERROR) {
         res
           .status(NOT_FOUND_ERROR)
           .send({ message: "Requested item not found." });
@@ -68,7 +68,7 @@ const updateUser = (req, res) => {
   User.findByIdAndUpdate(userId, { $set: { avatar } })
     .orFail()
     .then((item) => res.status(200).send({ data: item }))
-    .catch((e) => {
+    .catch(() => {
       res
         .status(DEFAULT_ERROR)
         .send({ message: "Error updating user, action not complete." });
