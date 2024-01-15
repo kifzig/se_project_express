@@ -41,14 +41,17 @@ const getUsers = (req, res) => {
 
 const getUser = (req, res) => {
   const { userId } = req.params;
-
   User.findById(userId)
+
+    .orFail(() => {
+      const error = new Error(`User ID ${userId} not found`);
+      error.statusCode = NOT_FOUND_ERROR;
+      throw error;
+    })
     .then((item) => res.status(200).send(item))
     .catch((error) => {
       if (error.statusCode === NOT_FOUND_ERROR) {
-        res
-          .status(NOT_FOUND_ERROR)
-          .send({ message: "Requested item not found." });
+        res.status(NOT_FOUND_ERROR).send(error.message);
       } else if (error.name === "CastError") {
         res
           .status(INVALID_DATA_ERROR)
