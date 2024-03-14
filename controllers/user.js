@@ -1,32 +1,60 @@
 const User = require("../models/user");
+const bcrypt = require("bcryptjs");
 
 const {
   INVALID_DATA_ERROR,
   NOT_FOUND_ERROR,
   DEFAULT_ERROR,
+  SUCCESS,
 } = require("../utils/errors");
+
+const { JWT_SECRET } = require("../utils/config");
 
 // CRUD OPERATIONS
 
 // Create
 
-const createUser = (req, res) => {
-  const { name, avatar } = req.body;
+const createUser = async (req, res) => {
+  const { name, avatar, email, password } = req.body;
 
-  User.create({ name, avatar })
-    .then((user) => {
-      res.send({ data: user });
-    })
-    .catch((err) => {
-      if (err.name === "ValidationError") {
-        return res
-          .status(INVALID_DATA_ERROR)
-          .json({ message: "Requested resource not found." });
-      }
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res
-        .status(DEFAULT_ERROR)
-        .json({ message: "An error has occurred on the server." });
+        .status(INVALID_DATA_ERROR)
+        .json({ message: "User with this email already exists." });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const user = await User.create({
+      name,
+      avatar,
+      email,
+      password: hashedPassword,
     });
+
+    res
+      .status(SUCCESS)
+      .json({ message: "User created successful", data: user });
+  } catch (err) {
+    // Handle errors
+    if (err.name === "ValidationError") {
+      return res
+        .status(INVALID_DATA_ERROR)
+        .json({ message: "Requested resource not found", error: err });
+    } else if (err.code === 11000) {
+      // MongoDB duplicate key error
+      return res
+        .status(CONFLICT_ERROR)
+        .json({ message: "User with this email already exists." });
+    }
+    return res
+      .status(DEFAULT_ERROR)
+      .json({ message: "An error has occurred on the server.", error: err });
+  }
 };
 
 const getUsers = (req, res) => {
@@ -78,9 +106,24 @@ const updateUser = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((u) => {
+      // authentication successful! u is in the user variable
+      const token = jwt.sign({ _id: u._id }, JWT_SECRET, { expiresIn: "7d" });
+    })
+    .catch((err) => {
+      // authentication error
+      res.status(401).send({ message: err.message });
+    });
+};
+
 module.exports = {
   createUser,
   getUsers,
   updateUser,
   getUser,
+  login,
 };
