@@ -41,6 +41,7 @@ const createUser = async (req, res) => {
       .json({ message: "User created successful", data: user });
   } catch (err) {
     // Handle errors
+    console.error(err);
     if (err.name === "ValidationError") {
       return res
         .status(INVALID_DATA_ERROR)
@@ -78,6 +79,7 @@ const getUser = (req, res) => {
     })
     .then((item) => res.status(200).send(item))
     .catch((error) => {
+      console.error(error);
       if (error.statusCode === NOT_FOUND_ERROR) {
         res.status(NOT_FOUND_ERROR).send(error.message);
       } else if (error.name === "CastError") {
@@ -116,6 +118,7 @@ const login = (req, res) => {
     })
     .catch((err) => {
       // authentication error
+      console.error(err);
       res.status(401).send({ message: err.message });
     });
 };
