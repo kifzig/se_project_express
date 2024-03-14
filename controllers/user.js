@@ -16,6 +16,7 @@ const { JWT_SECRET } = require("../utils/config");
 
 const createUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
+  console.log(name, avatar, email, password);
 
   try {
     const existingUser = await User.findOne({ email });
