@@ -16,8 +16,11 @@ app.use((req, res, next) => {
 const routes = require("./routes");
 
 app.use(express.json());
-app.use("/signup", createUser);
-app.use("/signin", login);
+app.post("/signup", createUser);
+app.post("/signin", login);
+
+const auth = require("./middlewares/auth");
+app.use(auth);
 
 app.use(routes);
 

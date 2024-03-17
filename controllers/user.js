@@ -20,6 +20,7 @@ const createUser = async (req, res) => {
 
   try {
     const existingUser = await User.findOne({ email });
+    console.log(existingUser);
     if (existingUser) {
       return res
         .status(INVALID_DATA_ERROR)
