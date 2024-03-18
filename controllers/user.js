@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const {
   INVALID_DATA_ERROR,
@@ -115,8 +116,9 @@ const login = (req, res) => {
 
   return User.findUserByCredentials(email, password)
     .then((u) => {
-      // authentication successful! u is in the user variable
+      // authentication successful! u is the user variable
       const token = jwt.sign({ _id: u._id }, JWT_SECRET, { expiresIn: "7d" });
+      res.send({ token });
     })
     .catch((err) => {
       // authentication error
