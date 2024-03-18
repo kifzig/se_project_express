@@ -127,10 +127,15 @@ const login = (req, res) => {
     });
 };
 
+const getCurrentUser = (req, res) => {
+  console.log("getCurrentUser");
+};
+
 module.exports = {
   createUser,
   getUsers,
   updateUser,
   getUser,
   login,
+  getCurrentUser,
 };
