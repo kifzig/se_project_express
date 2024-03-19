@@ -6,7 +6,7 @@ const handleAuthError = (res) => {
 };
 
 const extractBearerToken = (header) => {
-  return header.replace("Bearer", "");
+  return header.replace("Bearer ", "");
 };
 
 module.exports = (req, res, next) => {
@@ -17,6 +17,7 @@ module.exports = (req, res, next) => {
   }
 
   const token = extractBearerToken(authorization);
+
   let payload;
 
   try {
@@ -30,7 +31,3 @@ module.exports = (req, res, next) => {
 };
 
 // const token = authorization.replace("Bearer ", "");
-
-// payload = jwt.verify(token, JWT_SECRET);
-
-// next();

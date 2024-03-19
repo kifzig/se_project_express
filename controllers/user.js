@@ -17,11 +17,9 @@ const { JWT_SECRET } = require("../utils/config");
 
 const createUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
-  console.log(name, avatar, email, password);
 
   try {
     const existingUser = await User.findOne({ email });
-    console.log(existingUser);
     if (existingUser) {
       return res
         .status(INVALID_DATA_ERROR)
@@ -97,20 +95,6 @@ const getUser = (req, res) => {
     });
 };
 
-const updateUser = (req, res) => {
-  const { userId } = req.params;
-  const { avatar } = req.body;
-
-  User.findByIdAndUpdate(userId, { $set: { avatar } })
-    .orFail()
-    .then((item) => res.status(200).send({ data: item }))
-    .catch(() => {
-      res
-        .status(DEFAULT_ERROR)
-        .send({ message: "Error updating user, action not complete." });
-    });
-};
-
 const login = (req, res) => {
   const { email, password } = req.body;
 
@@ -128,7 +112,57 @@ const login = (req, res) => {
 };
 
 const getCurrentUser = (req, res) => {
-  console.log("getCurrentUser");
+  const userId = req.user._id;
+
+  User.findById(userId)
+    .then((user) => {
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const { _id, name, email, avatar } = user;
+      res.json({ _id, name, email, avatar });
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(DEFAULT_ERROR).json({ message: error });
+    });
+};
+
+const updateUser = (req, res) => {
+  const { userId } = req.params;
+  const { avatar } = req.body;
+
+  User.findByIdAndUpdate(userId, { $set: { avatar } })
+    .orFail()
+    .then((item) => res.status(SUCCESS).send({ data: item }))
+    .catch(() => {
+      res
+        .status(DEFAULT_ERROR)
+        .send({ message: "Error updating user, action not complete." });
+    });
+};
+
+const updateCurrentUser = (req, res) => {
+  const userId = req.user._id;
+  const { avatar, name } = req.body;
+
+  User.findByIdAndUpdate(
+    { _id: userId },
+    { $set: { avatar, name } },
+    { new: true, useFindAndModify: false },
+  )
+    .then((updatedUser) => {
+      if (!updatedUser) {
+        return res.status(NOT_FOUND_ERROR).send({ message: "User not found" });
+      }
+      res.status(SUCCESS).send({ data: updatedUser });
+    })
+    .catch((error) => {
+      console.error("Error updating user:", error);
+      res
+        .status(DEFAULT_ERROR)
+        .send({ message: "Error updating user, action not complete" });
+    });
 };
 
 module.exports = {
@@ -138,4 +172,5 @@ module.exports = {
   getUser,
   login,
   getCurrentUser,
+  updateCurrentUser,
 };
