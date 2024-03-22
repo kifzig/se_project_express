@@ -1,12 +1,14 @@
-const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 
 const {
   INVALID_DATA_ERROR,
   NOT_FOUND_ERROR,
   DEFAULT_ERROR,
   SUCCESS,
+  UNAUTHORIZED,
+  BAD_REQUEST,
 } = require("../utils/errors");
 
 const { JWT_SECRET } = require("../utils/config");
@@ -37,62 +39,33 @@ const createUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    res
+    const userData = {
+      _id: user._id,
+      name: user.name,
+      avatar: user.avatar,
+      email: user.email,
+    };
+
+    return res
       .status(SUCCESS)
-      .json({ message: "User created successful", data: user });
+      .json({ message: "User created successful", data: userData });
   } catch (err) {
     // Handle errors
-    console.error(err);
     if (err.name === "ValidationError") {
       return res
         .status(INVALID_DATA_ERROR)
-        .json({ message: "Requested resource not found", error: err });
-    } else if (err.code === 11000) {
+        .json({ message: "Requested resource not found" });
+    }
+    if (err.code === 11000) {
       // MongoDB duplicate key error
       return res
-        .status(CONFLICT_ERROR)
+        .status(NOT_FOUND_ERROR)
         .json({ message: "User with this email already exists." });
     }
     return res
       .status(DEFAULT_ERROR)
-      .json({ message: "An error has occurred on the server.", error: err });
+      .json({ message: "An error has occurred on the server." });
   }
-};
-
-const getUsers = (req, res) => {
-  User.find({})
-    .then((items) => res.status(200).send(items))
-    .catch(() => {
-      res
-        .status(DEFAULT_ERROR)
-        .send({ message: "Error retrieving a list of all users." });
-    });
-};
-
-const getUser = (req, res) => {
-  const { userId } = req.params;
-  User.findById(userId)
-
-    .orFail(() => {
-      const error = new Error(`User ID ${userId} not found`);
-      error.statusCode = NOT_FOUND_ERROR;
-      throw error;
-    })
-    .then((item) => res.status(200).send(item))
-    .catch((error) => {
-      console.error(error);
-      if (error.statusCode === NOT_FOUND_ERROR) {
-        res.status(NOT_FOUND_ERROR).send(error.message);
-      } else if (error.name === "CastError") {
-        res
-          .status(INVALID_DATA_ERROR)
-          .send({ message: "Invalid data submitted, action not complete." });
-      } else {
-        res
-          .status(DEFAULT_ERROR)
-          .send({ message: "Error retrieving user requested." });
-      }
-    });
 };
 
 const login = (req, res) => {
@@ -106,8 +79,9 @@ const login = (req, res) => {
     })
     .catch((err) => {
       // authentication error
-      console.error(err);
-      res.status(401).send({ message: err.message });
+      if (err.message === "Incorrect email or password") {
+        res.status(UNAUTHORIZED).send({ message: err.message });
+      }
     });
 };
 
@@ -117,29 +91,12 @@ const getCurrentUser = (req, res) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(NOT_FOUND_ERROR).json({ message: "User not found" });
       }
       const { _id, name, email, avatar } = user;
-      res.json({ _id, name, email, avatar });
+      return res.json({ _id, name, email, avatar });
     })
-    .catch((error) => {
-      console.error(error);
-      res.status(DEFAULT_ERROR).json({ message: error });
-    });
-};
-
-const updateUser = (req, res) => {
-  const { userId } = req.params;
-  const { avatar } = req.body;
-
-  User.findByIdAndUpdate(userId, { $set: { avatar } })
-    .orFail()
-    .then((item) => res.status(SUCCESS).send({ data: item }))
-    .catch(() => {
-      res
-        .status(DEFAULT_ERROR)
-        .send({ message: "Error updating user, action not complete." });
-    });
+    .catch((error) => res.status(DEFAULT_ERROR).json({ message: error }));
 };
 
 const updateCurrentUser = (req, res) => {
@@ -148,18 +105,20 @@ const updateCurrentUser = (req, res) => {
 
   User.findByIdAndUpdate(
     { _id: userId },
-    { $set: { avatar, name } },
-    { new: true, useFindAndModify: false },
+    { avatar, name },
+    { new: true, useFindAndModify: false, runValidators: true },
   )
     .then((updatedUser) => {
       if (!updatedUser) {
         return res.status(NOT_FOUND_ERROR).send({ message: "User not found" });
       }
-      res.status(SUCCESS).send({ data: updatedUser });
+      return res.status(SUCCESS).send({ data: updatedUser });
     })
     .catch((error) => {
-      console.error("Error updating user:", error);
-      res
+      if (error.name === "ValidationError") {
+        return res.status(BAD_REQUEST).send({ message: "Validation error" });
+      }
+      return res
         .status(DEFAULT_ERROR)
         .send({ message: "Error updating user, action not complete" });
     });
@@ -167,9 +126,6 @@ const updateCurrentUser = (req, res) => {
 
 module.exports = {
   createUser,
-  getUsers,
-  updateUser,
-  getUser,
   login,
   getCurrentUser,
   updateCurrentUser,

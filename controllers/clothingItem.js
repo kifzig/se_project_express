@@ -8,9 +8,6 @@ const {
 
 const createItem = (req, res) => {
   const owner = req.user._id;
-
-  module.exports.createClothingItem = () => {};
-
   const { name, weather, imageUrl } = req.body;
 
   ClothingItem.create({
@@ -44,7 +41,8 @@ const getItems = (req, res) => {
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
   const userId = req.user._id;
-  ClothingItem.findByIdAndDelete(_id: itemId, owner: itemId)
+  // This needs to be corrected
+  ClothingItem.findByIdAndDelete({ _id: itemId }, { owner: userId })
     .orFail()
     .then(() =>
       res.status(200).send({ message: "You successfully deleted an item." }),
