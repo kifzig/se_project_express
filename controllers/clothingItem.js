@@ -4,6 +4,8 @@ const {
   INVALID_DATA_ERROR,
   NOT_FOUND_ERROR,
   DEFAULT_ERROR,
+  SUCCESS,
+  FORBIDDEN,
 } = require("../utils/errors");
 
 const createItem = (req, res) => {
@@ -30,7 +32,7 @@ const createItem = (req, res) => {
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => res.status(200).send(items))
+    .then((items) => res.status(SUCCESS).send(items))
     .catch(() => {
       res
         .status(DEFAULT_ERROR)
@@ -41,12 +43,18 @@ const getItems = (req, res) => {
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
   const userId = req.user._id;
-  // This needs to be corrected
-  ClothingItem.findByIdAndDelete({ _id: itemId }, { owner: userId })
+  ClothingItem.findById({ _id: itemId })
     .orFail()
-    .then(() =>
-      res.status(200).send({ message: "You successfully deleted an item." }),
-    )
+    .then((item) => {
+      if (!item.owner.equals(userId)) {
+        return res.status(FORBIDDEN).send({ message: "Forbidden" });
+      }
+      return item.deleteOne(() =>
+        res
+          .status(SUCCESS)
+          .send({ message: "You successfully deleted an item." }),
+      );
+    })
     .catch((error) => {
       if (error.name === "DocumentNotFoundError") {
         // Handle null error
@@ -76,7 +84,7 @@ const likeItem = (req, res) =>
       error.statusCode = NOT_FOUND_ERROR;
       throw error;
     })
-    .then((item) => res.status(200).send({ data: item }))
+    .then((item) => res.status(SUCCESS).send({ data: item }))
     .catch((error) => {
       if (error.statusCode === NOT_FOUND_ERROR) {
         // Handle null error
@@ -108,7 +116,7 @@ const dislikeItem = (req, res) =>
       error.statusCode = NOT_FOUND_ERROR;
       throw error;
     })
-    .then((item) => res.status(200).send({ data: item }))
+    .then((item) => res.status(SUCCESS).send({ data: item }))
     .catch((error) => {
       if (error.statusCode === NOT_FOUND_ERROR) {
         // Handle null error

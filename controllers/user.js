@@ -9,6 +9,7 @@ const {
   SUCCESS,
   UNAUTHORIZED,
   BAD_REQUEST,
+  DUPLICATE_ERROR,
 } = require("../utils/errors");
 
 const { JWT_SECRET } = require("../utils/config");
@@ -24,7 +25,7 @@ const createUser = async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res
-        .status(INVALID_DATA_ERROR)
+        .status(DUPLICATE_ERROR)
         .json({ message: "User with this email already exists." });
     }
 
@@ -56,12 +57,6 @@ const createUser = async (req, res) => {
         .status(INVALID_DATA_ERROR)
         .json({ message: "Requested resource not found" });
     }
-    if (err.code === 11000) {
-      // MongoDB duplicate key error
-      return res
-        .status(NOT_FOUND_ERROR)
-        .json({ message: "User with this email already exists." });
-    }
     return res
       .status(DEFAULT_ERROR)
       .json({ message: "An error has occurred on the server." });
@@ -80,8 +75,12 @@ const login = (req, res) => {
     .catch((err) => {
       // authentication error
       if (err.message === "Incorrect email or password") {
-        res.status(UNAUTHORIZED).send({ message: err.message });
-      }
+        return res.status(UNAUTHORIZED).send({ message: err.message });
+      } 
+        return res
+          .status(DEFAULT_ERROR)
+          .json({ message: "An error has occurred on the server." });
+      
     });
 };
 

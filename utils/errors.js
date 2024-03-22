@@ -4,6 +4,8 @@ const DEFAULT_ERROR = 500;
 const SUCCESS = 200;
 const UNAUTHORIZED = 401;
 const BAD_REQUEST = 400;
+const DUPLICATE_ERROR = 409;
+const FORBIDDEN = 403;
 
 module.exports = {
   INVALID_DATA_ERROR,
@@ -12,6 +14,8 @@ module.exports = {
   SUCCESS,
   UNAUTHORIZED,
   BAD_REQUEST,
+  DUPLICATE_ERROR,
+  FORBIDDEN,
 };
 
 // https://mongoosejs.com/docs/api/error.html
