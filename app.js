@@ -11,11 +11,12 @@ mongoose.set("strictQuery", false);
 mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
 app.use(cors());
 
+app.use("/auth", authRoutes);
 const routes = require("./routes");
 
 app.use(express.json());
-app.use("/signup", authRoutes);
-app.use("/signin", authRoutes);
+// app.use("/signup", authRoutes);
+// app.use("/signin", authRoutes);
 
 // const auth = require("./middlewares/auth");
 // app.use(auth);
