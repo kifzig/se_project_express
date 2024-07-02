@@ -14,11 +14,10 @@ app.use(cors());
 const routes = require("./routes");
 
 app.use(express.json());
-app.use("/signup", authRoutes);
-app.use("/signin", authRoutes);
+// app.use("/signup", authRoutes);
+// app.use("/signin", authRoutes);
+app.use(authRoutes);
 
-// const auth = require("./middlewares/auth");
-// app.use(auth);
 app.use(routes);
 
 app.listen(PORT, () => console.log(`Server up and running on port ${PORT}`));
