@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const config = require("../config/config");
 
+const { DEFAULT_ERROR, UNAUTHORIZED } = require("./errors");
 // User registration
 
 router.post("/signup", async (req, res) => {
@@ -35,10 +36,19 @@ router.post("/signin", async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findUserByCredentials(email, password);
-
-    const token = jwt.sign({ _id: user._id }, config.TOKEN_SECRET);
+    const token = jwt.sign({ _id: user._id }, config.TOKEN_SECRET, {
+      expiresIn: "7d",
+    });
+    res.send({ token });
   } catch (err) {
-    res.status(400).send(err.message);
+    if (err.message === "Incorrect email or password") {
+      return res
+        .status(UNAUTHORIZED)
+        .send({ message: "User is not authorized" });
+    }
+    return res
+      .status(DEFAULT_ERROR)
+      .json({ message: "An error has occurred on the server." });
   }
 });
 

@@ -14,6 +14,7 @@ const {
 router.get("/", getItems);
 
 router.use(auth);
+
 // Create
 router.post("/", createItem);
 
