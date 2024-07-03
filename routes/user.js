@@ -1,9 +1,19 @@
 const router = require("express").Router();
 const auth = require("../middlewares/auth");
 
-const { getCurrentUser, updateCurrentUser } = require("../controllers/user");
+const {
+  getCurrentUser,
+  updateCurrentUser,
+  createUser,
+  login,
+} = require("../controllers/user");
 
-router.use(auth);
+// Create routes for login / register
+
+router.post("/signin", login);
+router.post("/signup", createUser);
+
+// router.use(auth);
 
 // Get /users/me
 router.get("/me", getCurrentUser);

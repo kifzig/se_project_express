@@ -16,7 +16,7 @@ const { JWT_SECRET } = require("../utils/config");
 
 // CRUD OPERATIONS
 
-// Create
+// CREATE USER
 
 const createUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
@@ -55,7 +55,7 @@ const createUser = async (req, res) => {
     if (err.name === "ValidationError") {
       return res
         .status(INVALID_DATA_ERROR)
-        .json({ message: "Requested resource not found" });
+        .json({ message: "Requested resource not found user" });
     }
     return res
       .status(DEFAULT_ERROR)
@@ -76,11 +76,10 @@ const login = (req, res) => {
       // authentication error
       if (err.message === "Incorrect email or password") {
         return res.status(UNAUTHORIZED).send({ message: err.message });
-      } 
-        return res
-          .status(DEFAULT_ERROR)
-          .json({ message: "An error has occurred on the server." });
-      
+      }
+      return res
+        .status(DEFAULT_ERROR)
+        .json({ message: "An error has occurred on the server." });
     });
 };
 

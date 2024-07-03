@@ -13,11 +13,7 @@ app.use(cors());
 const routes = require("./routes");
 
 app.use(express.json());
-app.post("/signup", createUser);
-app.post("/signin", login);
 
-// const auth = require("./middlewares/auth");
-// app.use(auth);
 app.use(routes);
 
 app.listen(PORT, () => {});
