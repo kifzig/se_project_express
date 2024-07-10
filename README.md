@@ -7,3 +7,5 @@ The back-end project is focused on creating a server for the WTWR application, t
 `npm run start` — to launch the server
 
 `npm run dev` — to launch the server with the hot reload feature
+
+Start the MongoDB Database - "C:\Program Files\MongoDB\Server\7.0\bin\mongod.exe" --dbpath="c:\data\db"
