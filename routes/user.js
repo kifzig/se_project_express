@@ -13,7 +13,7 @@ const {
 router.post("/signin", login);
 router.post("/signup", createUser);
 
-// router.use(auth);
+router.use(auth);
 
 // Get /users/me
 router.get("/me", getCurrentUser);
