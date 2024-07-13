@@ -47,9 +47,13 @@ const createUser = async (req, res) => {
       email: user.email,
     };
 
+    // Generate a token
+
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" });
+
     return res
       .status(SUCCESS)
-      .json({ message: "User created successful", data: userData });
+      .json({ message: "User created successfully", data: userData, token });
   } catch (err) {
     // Handle errors
     if (err.name === "ValidationError") {
